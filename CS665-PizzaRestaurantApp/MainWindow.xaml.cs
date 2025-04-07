@@ -20,4 +20,31 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    private void CreateOrder_Click(object sender, RoutedEventArgs e)
+    {
+        var createWindow = new CreateOrder(); // Make sure you use the correct namespace
+        createWindow.ShowDialog();
+    }
+
+    private void ViewOrders_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("This would show order list - not implemented yet.");
+    }
+
+    private void ManageCustomers_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("This would open customer management - not implemented yet.");
+    }
+
+    private void ManageMenuItems_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("This would open menu item management - not implemented yet.");
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
+
 }

@@ -6,7 +6,15 @@
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="10">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="250">
+            <TextBlock Text="Pizza Restaurant Manager" FontSize="20" FontWeight="Bold" TextAlignment="Center" Margin="0,0,0,20"/>
 
+            <Button Content="Create Order" Click="CreateOrder_Click" Height="40" Margin="0,5"/>
+            <Button Content="View Orders" Click="ViewOrders_Click" Height="40" Margin="0,5"/>
+            <Button Content="Manage Customers" Click="ManageCustomers_Click" Height="40" Margin="0,5"/>
+            <Button Content="Manage Menu Items" Click="ManageMenuItems_Click" Height="40" Margin="0,5"/>
+            <Button Content="Exit" Click="Exit_Click" Height="40" Margin="0,20,0,0"/>
+        </StackPanel>
     </Grid>
 </Window>
