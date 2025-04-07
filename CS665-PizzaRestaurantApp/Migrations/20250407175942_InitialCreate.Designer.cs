@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CS665_PizzaRestaurantApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250331144437_InitialCreate")]
+    [Migration("20250407175942_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
