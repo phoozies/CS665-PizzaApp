@@ -34,7 +34,8 @@ public partial class MainWindow : Window
 
     private void ManageCustomers_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("This would open customer management - not implemented yet.");
+        var customerWindow = new Views.CustomerPage();
+        customerWindow.ShowDialog();
     }
 
     private void ManageMenuItems_Click(object sender, RoutedEventArgs e)
