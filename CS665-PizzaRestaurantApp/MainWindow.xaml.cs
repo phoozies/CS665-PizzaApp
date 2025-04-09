@@ -39,7 +39,8 @@ public partial class MainWindow : Window
 
     private void ManageMenuItems_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("This would open menu item management - not implemented yet.");
+        var menuItemWindow = new Views.MenuItemPage(); // Adjust namespace if needed
+        menuItemWindow.ShowDialog(); // Or .Show() if you want it modeless
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e)
