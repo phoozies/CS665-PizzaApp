@@ -29,7 +29,8 @@ public partial class MainWindow : Window
 
     private void ViewOrders_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show("This would show order list - not implemented yet.");
+        var viewOrdersWindow = new Views.ViewOrders();
+        viewOrdersWindow.ShowDialog();
     }
 
     private void ManageCustomers_Click(object sender, RoutedEventArgs e)

@@ -12,6 +12,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.IO;
+using Microsoft.Win32;
 
 namespace CS665_PizzaRestaurantApp.Views
 {
@@ -20,6 +22,8 @@ namespace CS665_PizzaRestaurantApp.Views
     /// </summary>
     public partial class MenuItemPage : Window
     {
+        private string selectedImagePath;
+
         public MenuItemPage()
         {
             InitializeComponent();
@@ -40,7 +44,8 @@ namespace CS665_PizzaRestaurantApp.Views
                 {
                     Name = NameTextBox.Text,
                     Price = price,
-                    Description = DescriptionTextBox.Text
+                    Description = DescriptionTextBox.Text,
+                    ImagePath = selectedImagePath
                 };
                 context.MenuItemModels.Add(item);
                 context.SaveChanges();
@@ -95,6 +100,45 @@ namespace CS665_PizzaRestaurantApp.Views
                 NameTextBox.Text = selectedItem.Name;
                 PriceTextBox.Text = selectedItem.Price.ToString("F2");
                 DescriptionTextBox.Text = selectedItem.Description;
+
+                if (!string.IsNullOrWhiteSpace(selectedItem.ImagePath) && File.Exists(selectedItem.ImagePath))
+                {
+                    MenuItemImage.Source = new BitmapImage(new Uri(selectedItem.ImagePath));
+                    selectedImagePath = selectedItem.ImagePath;
+                }
+                else
+                {
+                    MenuItemImage.Source = null;
+                    selectedImagePath = null;
+                }
+            }
+        }
+
+        private void SelectImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp",
+                Title = "Select Menu Item Image"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string sourcePath = openFileDialog.FileName;
+                string imagesDirectory = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+
+                // Create Images directory if it doesn't exist
+                if (!Directory.Exists(imagesDirectory))
+                    Directory.CreateDirectory(imagesDirectory);
+
+                // Copy image to local folder with a unique filename
+                string fileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(sourcePath);
+                string destPath = System.IO.Path.Combine(imagesDirectory, fileName);
+                File.Copy(sourcePath, destPath, true);
+
+                // Update path reference and image preview
+                selectedImagePath = destPath;
+                MenuItemImage.Source = new BitmapImage(new Uri(destPath));
             }
         }
 

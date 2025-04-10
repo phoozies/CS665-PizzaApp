@@ -19,5 +19,7 @@ namespace CS665_PizzaRestaurantApp.Models
         public decimal Price { get; set; }
 
         public string Description { get; set; }
+
+        public string ImagePath { get; set; } // path to the image file
     }
 }
