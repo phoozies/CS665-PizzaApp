@@ -5,9 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="500" Width="800">
     <Grid Margin="10">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="250">
+            <Image Source="Images/pizza_logo.png" Height="100" Width="100" Margin="0,0,0,20" Stretch="Uniform"/>
+
             <TextBlock Text="Pizza Restaurant Manager" FontSize="20" FontWeight="Bold" TextAlignment="Center" Margin="0,0,0,20"/>
 
             <Button Content="Create Order" Click="CreateOrder_Click" Height="40" Margin="0,5"/>
