@@ -1,17 +1,6 @@
 ﻿using CS665_PizzaRestaurantApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Linq;
 
 namespace CS665_PizzaRestaurantApp.Views
 {
@@ -29,11 +18,17 @@ namespace CS665_PizzaRestaurantApp.Views
         private void LoadCustomers()
         {
             using var context = new ApplicationDbContext();
-            CustomerListBox.ItemsSource = context.CustomerModels.ToList();
+            CustomerDataGrid.ItemsSource = context.CustomerModels.ToList();
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(NameTextBox.Text))
+            {
+                MessageBox.Show("Please enter a name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             using var context = new ApplicationDbContext();
             var newCustomer = new CustomerModel
             {
@@ -50,8 +45,14 @@ namespace CS665_PizzaRestaurantApp.Views
 
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CustomerListBox.SelectedItem is CustomerModel selected)
+            if (CustomerDataGrid.SelectedItem is CustomerModel selected)
             {
+                if (string.IsNullOrWhiteSpace(NameTextBox.Text))
+                {
+                    MessageBox.Show("Please enter a name.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 using var context = new ApplicationDbContext();
                 var customer = context.CustomerModels.Find(selected.CustomerID);
                 if (customer != null)
@@ -65,27 +66,41 @@ namespace CS665_PizzaRestaurantApp.Views
                     ClearForm();
                 }
             }
+            else
+            {
+                MessageBox.Show("Please select a customer to update.", "Selection Required", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CustomerListBox.SelectedItem is CustomerModel selected)
+            if (CustomerDataGrid.SelectedItem is CustomerModel selected)
             {
-                using var context = new ApplicationDbContext();
-                var customer = context.CustomerModels.Find(selected.CustomerID);
-                if (customer != null)
+                var result = MessageBox.Show($"Are you sure you want to delete {selected.Name}?", "Confirm Delete",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
                 {
-                    context.CustomerModels.Remove(customer);
-                    context.SaveChanges();
-                    LoadCustomers();
-                    ClearForm();
+                    using var context = new ApplicationDbContext();
+                    var customer = context.CustomerModels.Find(selected.CustomerID);
+                    if (customer != null)
+                    {
+                        context.CustomerModels.Remove(customer);
+                        context.SaveChanges();
+                        LoadCustomers();
+                        ClearForm();
+                    }
                 }
+            }
+            else
+            {
+                MessageBox.Show("Please select a customer to delete.", "Selection Required", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
-        private void CustomerListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void CustomerDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (CustomerListBox.SelectedItem is CustomerModel selected)
+            if (CustomerDataGrid.SelectedItem is CustomerModel selected)
             {
                 NameTextBox.Text = selected.Name;
                 PhoneTextBox.Text = selected.Phone;
@@ -100,7 +115,12 @@ namespace CS665_PizzaRestaurantApp.Views
             PhoneTextBox.Text = "";
             EmailTextBox.Text = "";
             AddressTextBox.Text = "";
-            CustomerListBox.SelectedItem = null;
+            CustomerDataGrid.SelectedItem = null;
+        }
+
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearForm();
         }
     }
 }
