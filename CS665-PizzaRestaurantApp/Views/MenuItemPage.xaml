@@ -5,36 +5,74 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp.Views"
         mc:Ignorable="d"
-        Title="MenuItemPage" Height="450" Width="800">
+        Title="Menu Item Management" Height="600" Width="900">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Vertical" Margin="0,0,0,10">
-            <TextBlock Text="Name"/>
-            <TextBox x:Name="NameTextBox" Margin="0,5"/>
+        <!-- Menu Item Form -->
+        <GroupBox Header="Menu Item Information" Margin="0,0,0,10">
+            <StackPanel Orientation="Vertical">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <TextBlock Text="Price"/>
-            <TextBox x:Name="PriceTextBox" Margin="0,5"/>
+                    <TextBlock Text="Name:" Grid.Row="0" Grid.Column="0" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="NameTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5"/>
 
-            <TextBlock Text="Description"/>
-            <TextBox x:Name="DescriptionTextBox" Margin="0,5"/>
+                    <TextBlock Text="Price:" Grid.Row="1" Grid.Column="0" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="PriceTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,5"/>
 
-            <StackPanel Orientation="Vertical" Margin="0,5">
-                <Button Content="Select Image" Width="120" Click="SelectImageButton_Click" Margin="0,5"/>
-                <Image x:Name="MenuItemImage" Height="100" Width="100" Stretch="Uniform" Margin="0,5"/>
+                    <TextBlock Text="Description:" Grid.Row="2" Grid.Column="0" Margin="0,0,5,5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="DescriptionTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,5"/>
+
+                    <Button Content="Select Image" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
+                            Width="120" Click="SelectImageButton_Click" Margin="0,5" HorizontalAlignment="Left"/>
+
+                    <!-- Image Preview -->
+                    <Border Grid.Row="0" Grid.Column="2" Grid.RowSpan="4" BorderBrush="LightGray" BorderThickness="1" 
+                            Margin="10,0,0,0" Width="150" Height="150">
+                        <Image x:Name="MenuItemImage" Stretch="Uniform" />
+                    </Border>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Right">
+                    <Button Content="Add" Width="75" Click="AddButton_Click"/>
+                    <Button Content="Update" Width="75" Margin="5,0,0,0" Click="UpdateButton_Click"/>
+                    <Button Content="Delete" Width="75" Margin="5,0,0,0" Click="DeleteButton_Click"/>
+                    <Button Content="Clear" Width="75" Margin="5,0,0,0" Click="ClearButton_Click"/>
+                </StackPanel>
             </StackPanel>
+        </GroupBox>
 
-            <StackPanel Orientation="Horizontal" Margin="0,5">
-                <Button Content="Add" Width="75" Click="AddButton_Click"/>
-                <Button Content="Update" Width="75" Margin="5,0,0,0" Click="UpdateButton_Click"/>
-                <Button Content="Delete" Width="75" Margin="5,0,0,0" Click="DeleteButton_Click"/>
-            </StackPanel>
-        </StackPanel>
-
-        <ListBox x:Name="MenuItemListBox" Grid.Row="1" DisplayMemberPath="Name" 
-                 SelectionChanged="MenuItemListBox_SelectionChanged"/>
+        <!-- Menu Items List -->
+        <GroupBox Header="Menu Items" Grid.Row="1">
+            <DataGrid x:Name="MenuItemsDataGrid" AutoGenerateColumns="False" IsReadOnly="True" 
+                      SelectionMode="Single" SelectionChanged="MenuItemsDataGrid_SelectionChanged">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Image" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding ImagePath}" Height="60" Stretch="Uniform" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="*"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
     </Grid>
 </Window>
