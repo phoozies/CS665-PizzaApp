@@ -24,6 +24,7 @@ namespace CS665_PizzaRestaurantApp.Models
         public virtual ICollection<OrderDetailModel> OrderDetails { get; set; }
 
         // Calculated property
+        [NotMapped]
         public decimal TotalAmount => OrderDetails?.Sum(od => od.Quantity * od.UnitPrice) ?? 0;
     }
 }
