@@ -1,5 +1,6 @@
 ﻿using CS665_PizzaRestaurantApp.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,15 +11,14 @@ namespace CS665_PizzaRestaurantApp
 {
     public partial class CreateOrder : Window
     {
-        private decimal _unitPrice = 0;
-        private int _selectedItemId = 0;
+        private List<OrderItem> _currentOrderItems = new List<OrderItem>();
 
         public CreateOrder()
         {
             InitializeComponent();
             LoadCustomers();
             LoadMenuItems();
-            UpdateTotal();
+            UpdateOrderTotal();
         }
 
         private void LoadCustomers()
@@ -38,47 +38,95 @@ namespace CS665_PizzaRestaurantApp
         {
             if (sender is Image image && image.Tag is int itemId)
             {
-                var selectedItem = ((MenuItemModel)image.DataContext);
-                _selectedItemId = itemId;
-                _unitPrice = selectedItem.Price;
-                SelectedItemText.Text = selectedItem.Name;
-                UpdateTotal();
+                AddItemToOrder(itemId);
             }
         }
 
-        private void QuantityTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void AddToOrderButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdateTotal();
+            if (sender is Button button && button.Tag is int itemId)
+            {
+                AddItemToOrder(itemId);
+            }
         }
 
-        private void UpdateTotal()
+        private void AddItemToOrder(int itemId)
         {
-            // Ensure controls exist
-            if (QuantityTextBox == null || TotalTextBlock == null)
-                return;
+            using var context = new ApplicationDbContext();
+            var menuItem = context.MenuItemModels.FirstOrDefault(m => m.ItemID == itemId);
 
-            if (int.TryParse(QuantityTextBox.Text, out int quantity) &&
-                quantity > 0 &&
-                _selectedItemId > 0)
+            if (menuItem != null)
             {
-                decimal total = _unitPrice * quantity;
-                TotalTextBlock.Text = total.ToString("C");
+                var existingItem = _currentOrderItems.FirstOrDefault(i => i.ItemID == itemId);
+
+                if (existingItem != null)
+                {
+                    existingItem.Quantity++;
+                }
+                else
+                {
+                    _currentOrderItems.Add(new OrderItem
+                    {
+                        ItemID = menuItem.ItemID,
+                        Name = menuItem.Name,
+                        Price = menuItem.Price,
+                        ImagePath = menuItem.ImagePath,
+                        Quantity = 1
+                    });
+                }
+
+                RefreshOrderItems();
+                UpdateOrderTotal();
             }
-            else
+        }
+
+        private void RemoveItemButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is int itemId)
             {
-                TotalTextBlock.Text = "$0.00";
+                var itemToRemove = _currentOrderItems.FirstOrDefault(i => i.ItemID == itemId);
+                if (itemToRemove != null)
+                {
+                    if (itemToRemove.Quantity > 1)
+                    {
+                        itemToRemove.Quantity--;
+                    }
+                    else
+                    {
+                        _currentOrderItems.Remove(itemToRemove);
+                    }
+
+                    RefreshOrderItems();
+                    UpdateOrderTotal();
+                }
             }
+        }
+
+        private void RefreshOrderItems()
+        {
+            OrderItemsDataGrid.ItemsSource = null;
+            OrderItemsDataGrid.ItemsSource = _currentOrderItems;
+        }
+
+        private void UpdateOrderTotal()
+        {
+            decimal total = _currentOrderItems.Sum(item => item.LineTotal);
+            OrderTotalTextBlock.Text = total.ToString("C");
         }
 
         private void CreateOrderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CustomerComboBox.SelectedItem is not CustomerModel selectedCustomer ||
-                _selectedItemId == 0 ||
-                !int.TryParse(QuantityTextBox.Text, out int quantity) ||
-                quantity <= 0)
+            if (CustomerComboBox.SelectedItem is not CustomerModel selectedCustomer)
             {
-                MessageBox.Show("Please select a customer, menu item, and enter valid quantity.",
-                    "Incomplete Order", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a customer.", "Incomplete Order",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_currentOrderItems.Count == 0)
+            {
+                MessageBox.Show("Please add at least one menu item to the order.", "Incomplete Order",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -96,20 +144,23 @@ namespace CS665_PizzaRestaurantApp
                 context.OrderModels.Add(newOrder);
                 context.SaveChanges();
 
-                // Create order detail
-                var newDetail = new OrderDetailModel
+                // Add all order details
+                foreach (var item in _currentOrderItems)
                 {
-                    OrderID = newOrder.OrderID,
-                    ItemID = _selectedItemId,
-                    Quantity = quantity,
-                    UnitPrice = _unitPrice
-                };
-                context.OrderDetailModels.Add(newDetail);
-                context.SaveChanges();
+                    var newDetail = new OrderDetailModel
+                    {
+                        OrderID = newOrder.OrderID,
+                        ItemID = item.ItemID,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.Price
+                    };
+                    context.OrderDetailModels.Add(newDetail);
+                }
 
+                context.SaveChanges();
                 transaction.Commit();
 
-                MessageBox.Show($"Order #{newOrder.OrderID} created successfully!",
+                MessageBox.Show($"Order #{newOrder.OrderID} created successfully with {_currentOrderItems.Count} items!",
                     "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.Close();
             }
@@ -125,5 +176,16 @@ namespace CS665_PizzaRestaurantApp
         {
             this.Close();
         }
+    }
+
+    // Helper class for displaying order items
+    public class OrderItem
+    {
+        public int ItemID { get; set; }
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public string ImagePath { get; set; }
+        public int Quantity { get; set; }
+        public decimal LineTotal => Price * Quantity;
     }
 }
