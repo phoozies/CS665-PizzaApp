@@ -5,72 +5,86 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp.Views"
         mc:Ignorable="d"
-        Title="Customer Order History" Height="700" Width="1000">
+        Title="Customer Order History" 
+        Height="750" 
+        Width="1000"
+        SizeToContent="Manual"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="400"/>
         </Grid.RowDefinitions>
 
         <!-- Customers with Orders -->
-        <GroupBox Header="Customers">
-            <DataGrid x:Name="CustomersDataGrid" AutoGenerateColumns="False" 
-                      SelectionChanged="CustomersDataGrid_SelectionChanged"
-                      IsReadOnly="True" SelectionMode="Single">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding CustomerID}" Width="Auto"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="*"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
-                    <DataGridTextColumn Header="Orders" Binding="{Binding OrderCount}" Width="Auto"/>
-                    <DataGridTextColumn Header="Total Spent" Binding="{Binding TotalSpent, StringFormat=C}" Width="Auto"/>
-                </DataGrid.Columns>
-            </DataGrid>
+        <GroupBox Header="Customers" Grid.Row="0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <DataGrid x:Name="CustomersDataGrid" AutoGenerateColumns="False" 
+                          SelectionChanged="CustomersDataGrid_SelectionChanged"
+                          IsReadOnly="True" SelectionMode="Single"
+                          ColumnWidth="*">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding CustomerID}" Width="80"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
+                        <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
+                        <DataGridTextColumn Header="Orders" Binding="{Binding OrderCount}" Width="80"/>
+                        <DataGridTextColumn Header="Total Spent" Binding="{Binding TotalSpent, StringFormat=C}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Customer's Orders -->
         <GroupBox Header="Customer's Orders" Grid.Row="1" Margin="0,10,0,0">
-            <DataGrid x:Name="OrdersDataGrid" AutoGenerateColumns="False" 
-                      SelectionChanged="OrdersDataGrid_SelectionChanged"
-                      IsReadOnly="True" SelectionMode="Single">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Order ID" Binding="{Binding OrderID}" Width="Auto"/>
-                    <DataGridTextColumn Header="Date" Binding="{Binding OrderDate, StringFormat=MM/dd/yyyy}" Width="Auto"/>
-                    <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="Auto"/>
-                    <DataGridTemplateColumn Header="Actions" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Content="Edit" Click="EditOrder_Click" Margin="2" Padding="5,2"
-                                            Tag="{Binding OrderID}"/>
-                                    <Button Content="Delete" Click="DeleteOrder_Click" Margin="2" Padding="5,2"
-                                            Tag="{Binding OrderID}"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <DataGrid x:Name="OrdersDataGrid" AutoGenerateColumns="False" 
+                          SelectionChanged="OrdersDataGrid_SelectionChanged"
+                          IsReadOnly="True" SelectionMode="Single"
+                          ColumnWidth="*">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Order ID" Binding="{Binding OrderID}" Width="80"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding OrderDate, StringFormat=MM/dd/yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="100"/>
+                        <DataGridTemplateColumn Header="Actions" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Edit" Click="EditOrder_Click" Margin="2" Padding="5,2"
+                                                Tag="{Binding OrderID}" Width="60"/>
+                                        <Button Content="Delete" Click="DeleteOrder_Click" Margin="2" Padding="5,2"
+                                                Tag="{Binding OrderID}" Width="60"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
 
         <!-- Order Items -->
         <GroupBox Header="Order Items" Grid.Row="2" Margin="0,10,0,0">
-            <DataGrid x:Name="OrderItemsDataGrid" AutoGenerateColumns="False" IsReadOnly="True">
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Image" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding ImagePath}" Height="60" Stretch="Uniform"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="Auto"/>
-                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="Auto"/>
-                    <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C}" Width="Auto"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <DataGrid x:Name="OrderItemsDataGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                          ColumnWidth="*">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="Image" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Source="{Binding ImagePath}" Height="60" Stretch="Uniform"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="200"/>
+                        <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="80"/>
+                        <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
+                        <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C}" Width="80"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </ScrollViewer>
         </GroupBox>
     </Grid>
 </Window>
