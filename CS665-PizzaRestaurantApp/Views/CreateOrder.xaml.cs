@@ -3,33 +3,47 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 
 namespace CS665_PizzaRestaurantApp
 {
     public partial class CreateOrder : Window
     {
         private decimal _unitPrice = 0;
+        private int _selectedItemId = 0;
 
         public CreateOrder()
         {
             InitializeComponent();
             LoadCustomers();
             LoadMenuItems();
+            UpdateTotal();
         }
 
         private void LoadCustomers()
         {
             using var context = new ApplicationDbContext();
-            // TODO: FIX CONNECTION
-            var customers = context.CustomerModels.ToList();
-            CustomerComboBox.ItemsSource = customers;
+            CustomerComboBox.ItemsSource = context.CustomerModels.ToList();
         }
 
         private void LoadMenuItems()
         {
             using var context = new ApplicationDbContext();
             var items = context.MenuItemModels.ToList();
-            MenuItemComboBox.ItemsSource = items;
+            MenuItemsControl.ItemsSource = items;
+        }
+
+        private void MenuItemImage_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Image image && image.Tag is int itemId)
+            {
+                var selectedItem = ((MenuItemModel)image.DataContext);
+                _selectedItemId = itemId;
+                _unitPrice = selectedItem.Price;
+                SelectedItemText.Text = selectedItem.Name;
+                UpdateTotal();
+            }
         }
 
         private void QuantityTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -37,26 +51,18 @@ namespace CS665_PizzaRestaurantApp
             UpdateTotal();
         }
 
-        private void MenuItemComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (MenuItemComboBox.SelectedItem is MenuItemModel selectedItem)
-            {
-                _unitPrice = selectedItem.Price;
-                UpdateTotal();
-            }
-            else
-            {
-                _unitPrice = 0;
-                UpdateTotal();
-            }
-        }
-
         private void UpdateTotal()
         {
-            if (int.TryParse(QuantityTextBox.Text, out int quantity) && quantity > 0)
+            // Ensure controls exist
+            if (QuantityTextBox == null || TotalTextBlock == null)
+                return;
+
+            if (int.TryParse(QuantityTextBox.Text, out int quantity) &&
+                quantity > 0 &&
+                _selectedItemId > 0)
             {
                 decimal total = _unitPrice * quantity;
-                TotalTextBlock.Text = $"${total:F2}";
+                TotalTextBlock.Text = total.ToString("C");
             }
             else
             {
@@ -67,11 +73,12 @@ namespace CS665_PizzaRestaurantApp
         private void CreateOrderButton_Click(object sender, RoutedEventArgs e)
         {
             if (CustomerComboBox.SelectedItem is not CustomerModel selectedCustomer ||
-                MenuItemComboBox.SelectedItem is not MenuItemModel selectedItem ||
+                _selectedItemId == 0 ||
                 !int.TryParse(QuantityTextBox.Text, out int quantity) ||
                 quantity <= 0)
             {
-                MessageBox.Show("Please fill in all fields correctly.");
+                MessageBox.Show("Please select a customer, menu item, and enter valid quantity.",
+                    "Incomplete Order", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -94,7 +101,7 @@ namespace CS665_PizzaRestaurantApp
                 var newDetail = new OrderDetailModel
                 {
                     OrderID = newOrder.OrderID,
-                    ItemID = selectedItem.ItemID,
+                    ItemID = _selectedItemId,
                     Quantity = quantity,
                     UnitPrice = _unitPrice
                 };
@@ -103,13 +110,15 @@ namespace CS665_PizzaRestaurantApp
 
                 transaction.Commit();
 
-                MessageBox.Show("Order created successfully!");
+                MessageBox.Show($"Order #{newOrder.OrderID} created successfully!",
+                    "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.Close();
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
-                MessageBox.Show("Error creating order: " + ex.Message);
+                MessageBox.Show($"Error creating order: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

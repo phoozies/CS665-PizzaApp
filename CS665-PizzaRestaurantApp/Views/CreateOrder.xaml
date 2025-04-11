@@ -5,49 +5,79 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp"
         mc:Ignorable="d"
-        Title="CreateOrder" Height="450" Width="800">
+        Title="Create New Order" Height="600" Width="900">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Customer Selection -->
-        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="0">
-            <TextBlock Text="Customer:" Width="100" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CustomerComboBox" Width="250"
+        <GroupBox Header="Customer" Grid.Row="0" Margin="0,0,0,10">
+            <ComboBox x:Name="CustomerComboBox" 
                       DisplayMemberPath="Name"
-                      SelectedValuePath="CustomerID"/>
-        </StackPanel>
+                      SelectedValuePath="CustomerID"
+                      FontSize="14" Height="30"/>
+        </GroupBox>
 
-        <!-- Menu Item Selection -->
-        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="1">
-            <TextBlock Text="Menu Item:" Width="100" VerticalAlignment="Center"/>
-            <ComboBox x:Name="MenuItemComboBox" Width="250"
-                      DisplayMemberPath="Name"
-                      SelectedValuePath="ItemID"
-                      SelectionChanged="MenuItemComboBox_SelectionChanged"/>
-        </StackPanel>
+        <!-- Menu Items Grid -->
+        <GroupBox Header="Menu Items" Grid.Row="1" Margin="0,0,0,10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="MenuItemsControl">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="LightGray" BorderThickness="1" Margin="5" 
+                                    Width="150" Height="180" CornerRadius="5">
+                                <StackPanel Orientation="Vertical">
+                                    <Image Source="{Binding ImagePath}" Height="100" Stretch="Uniform"
+                                           MouseDown="MenuItemImage_MouseDown" Tag="{Binding ItemID}"
+                                           Cursor="Hand" ToolTip="Click to select"/>
+                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="5,0" 
+                                               TextAlignment="Center"/>
+                                    <TextBlock Text="{Binding Price, StringFormat=C}" Margin="5,0" 
+                                               TextAlignment="Center" Foreground="Green"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
 
-        <!-- Quantity -->
-        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="2">
-            <TextBlock Text="Quantity:" Width="100" VerticalAlignment="Center"/>
-            <TextBox x:Name="QuantityTextBox" Width="250" TextChanged="QuantityTextBox_TextChanged"/>
-        </StackPanel>
+        <!-- Selected Item and Quantity -->
+        <GroupBox Header="Order Details" Grid.Row="2" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- Total -->
-        <StackPanel Orientation="Horizontal" Margin="0,5" Grid.Row="3">
-            <TextBlock Text="Total:" Width="100" VerticalAlignment="Center"/>
-            <TextBlock x:Name="TotalTextBlock" Width="250"/>
-        </StackPanel>
+                <TextBlock Text="Selected Item:" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock x:Name="SelectedItemText" Grid.Column="1" VerticalAlignment="Center" FontWeight="Bold"/>
 
-        <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10" Grid.Row="4">
-            <Button Content="Create Order" Click="CreateOrderButton_Click" Width="120" Margin="0,0,10,0"/>
-            <Button Content="Cancel" Click="CancelButton_Click" Width="80"/>
+                <TextBlock Text="Quantity:" Grid.Column="2" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                <TextBox x:Name="QuantityTextBox" Grid.Column="3" Width="50" VerticalAlignment="Center"
+                         TextChanged="QuantityTextBox_TextChanged" Text="1"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Total and Buttons -->
+        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Right">
+            <TextBlock Text="Total:" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBlock x:Name="TotalTextBlock" Text="$0.00" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" 
+                       MinWidth="100" Margin="0,0,20,0"/>
+            <Button Content="Create Order" Click="CreateOrderButton_Click" Width="120" Height="30" 
+                    Margin="0,0,10,0" FontWeight="Bold"/>
+            <Button Content="Cancel" Click="CancelButton_Click" Width="80" Height="30"/>
         </StackPanel>
     </Grid>
 </Window>
