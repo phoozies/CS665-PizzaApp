@@ -30,5 +30,8 @@ namespace CS665_PizzaRestaurantApp.Models
 
         public virtual OrderModel Order { get; set; }
         public virtual MenuItemModel MenuItem { get; set; }
+
+        // Calculated property
+        public decimal LineTotal => Quantity * UnitPrice;
     }
 }

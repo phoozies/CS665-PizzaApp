@@ -19,8 +19,11 @@ namespace CS665_PizzaRestaurantApp.Models
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
 
-        public decimal TotalAmount { get; set; } // Auto-calculated from OrderDetails
+        // Navigation properties
+        public virtual CustomerModel Customer { get; set; }
+        public virtual ICollection<OrderDetailModel> OrderDetails { get; set; }
 
-        public virtual CustomerModel Customer { get; set; } // Navigation Property
+        // Calculated property
+        public decimal TotalAmount => OrderDetails?.Sum(od => od.Quantity * od.UnitPrice) ?? 0;
     }
 }

@@ -21,5 +21,8 @@ namespace CS665_PizzaRestaurantApp.Models
         public string Description { get; set; }
 
         public string ImagePath { get; set; } // path to the image file
+
+        // Navigation property
+        public virtual ICollection<OrderDetailModel> OrderDetails { get; set; }
     }
 }

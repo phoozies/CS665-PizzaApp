@@ -92,7 +92,6 @@ namespace CS665_PizzaRestaurantApp
                 {
                     CustomerID = selectedCustomer.CustomerID,
                     OrderDate = DateTime.Now,
-                    TotalAmount = _unitPrice * quantity
                 };
                 context.OrderModels.Add(newOrder);
                 context.SaveChanges();
