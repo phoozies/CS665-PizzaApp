@@ -5,10 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800">
+        Title="MainWindow" Height="550" Width="800">
     <Grid Margin="10">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="250">
-            <Image Source="Images/pizza_logo.png" Height="100" Width="100" Margin="0,0,0,20" Stretch="Uniform"/>
+            <!-- Horizontal StackPanel for images -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0">
+                <Image Source="/Images/papa_costanaza_happy.png" Height="100" Width="100" Stretch="Uniform"/>
+                <Image Source="/Images/pizza_logo.png" Height="100" Width="100" Stretch="Uniform" Margin="0,0,0,0"/>
+            </StackPanel>
 
             <TextBlock Text="Papa Costanza's" FontSize="20" FontWeight="Bold" TextAlignment="Center" Margin="0,0,0,0"/>
             <TextBlock Text="Restaurant Manager" FontSize="20" FontWeight="Bold" TextAlignment="Center" Margin="0,0,0,20"/>
