@@ -31,7 +31,6 @@
                         <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
                         <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
                         <DataGridTextColumn Header="Orders" Binding="{Binding OrderCount}" Width="80"/>
-                        <DataGridTextColumn Header="Total Spent" Binding="{Binding TotalSpent, StringFormat=C}" Width="100"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </ScrollViewer>

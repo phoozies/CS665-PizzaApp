@@ -1,6 +1,7 @@
 ﻿using CS665_PizzaRestaurantApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,39 +28,19 @@ namespace CS665_PizzaRestaurantApp.Views
             var customers = context.CustomerModels
                 .Include(c => c.Orders)
                     .ThenInclude(o => o.OrderDetails)
-                        .ThenInclude(od => od.MenuItem)
                 .Where(c => c.Orders.Any())
-                .ToList(); // First get full objects
-
-            // Debug: Inspect first customer's data
-            if (customers.Any())
-            {
-                var firstCustomer = customers.First();
-                System.Diagnostics.Debug.WriteLine($"Customer: {firstCustomer.Name}");
-                System.Diagnostics.Debug.WriteLine($"Orders: {firstCustomer.Orders.Count}");
-                foreach (var order in firstCustomer.Orders)
+                .AsEnumerable()
+                .Select(c => new CustomerOrderSummary
                 {
-                    System.Diagnostics.Debug.WriteLine($"Order {order.OrderID} has {order.OrderDetails.Count} items");
-                    foreach (var detail in order.OrderDetails)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"- {detail.Quantity} x {detail.MenuItem?.Name} @ {detail.UnitPrice}");
-                    }
-                }
-            }
+                    CustomerID = c.CustomerID,
+                    Name = c.Name,
+                    Phone = c.Phone,
+                    Email = c.Email,
+                    OrderCount = c.Orders.Count,
+                })
+                .ToList();
 
-            // Then project to view model
-            var result = customers.Select(c => new CustomerOrderSummary
-            {
-                CustomerID = c.CustomerID,
-                Name = c.Name,
-                Phone = c.Phone,
-                Email = c.Email,
-                OrderCount = c.Orders.Count,
-                TotalSpent = c.Orders
-                    .Sum(o => o.OrderDetails.Sum(od => od.Quantity * od.UnitPrice))
-            }).ToList();
-
-            CustomersDataGrid.ItemsSource = result;
+            CustomersDataGrid.ItemsSource = customers;
         }
 
         private void CustomersDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -67,6 +48,7 @@ namespace CS665_PizzaRestaurantApp.Views
             if (CustomersDataGrid.SelectedItem is CustomerOrderSummary selectedCustomer)
             {
                 _selectedCustomerId = selectedCustomer.CustomerID;
+                System.Diagnostics.Debug.WriteLine(_selectedCustomerId);
                 LoadCustomerOrders(selectedCustomer.CustomerID);
             }
         }
