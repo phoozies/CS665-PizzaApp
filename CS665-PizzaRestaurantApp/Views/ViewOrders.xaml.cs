@@ -23,27 +23,43 @@ namespace CS665_PizzaRestaurantApp.Views
         private void LoadCustomersWithOrders()
         {
             using var context = new ApplicationDbContext();
+
             var customers = context.CustomerModels
                 .Include(c => c.Orders)
-                    .ThenInclude(o => o.OrderDetails) // Include OrderDetails as well
+                    .ThenInclude(o => o.OrderDetails)
+                        .ThenInclude(od => od.MenuItem)
                 .Where(c => c.Orders.Any())
-                .AsEnumerable()
-                .Select(c => new CustomerOrderSummary
-                {
-                    CustomerID = c.CustomerID,
-                    Name = c.Name,
-                    Phone = c.Phone,
-                    Email = c.Email,
-                    OrderCount = c.Orders.Count,
-                    TotalSpent = c.Orders
-                        .Where(o => o.OrderDetails != null) // Add null check
-                        .Sum(o => o.OrderDetails
-                            .Where(od => od != null) // Add null check for order details
-                            .Sum(od => od.Quantity * od.UnitPrice))
-                })
-                .ToList();
+                .ToList(); // First get full objects
 
-            CustomersDataGrid.ItemsSource = customers;
+            // Debug: Inspect first customer's data
+            if (customers.Any())
+            {
+                var firstCustomer = customers.First();
+                System.Diagnostics.Debug.WriteLine($"Customer: {firstCustomer.Name}");
+                System.Diagnostics.Debug.WriteLine($"Orders: {firstCustomer.Orders.Count}");
+                foreach (var order in firstCustomer.Orders)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Order {order.OrderID} has {order.OrderDetails.Count} items");
+                    foreach (var detail in order.OrderDetails)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"- {detail.Quantity} x {detail.MenuItem?.Name} @ {detail.UnitPrice}");
+                    }
+                }
+            }
+
+            // Then project to view model
+            var result = customers.Select(c => new CustomerOrderSummary
+            {
+                CustomerID = c.CustomerID,
+                Name = c.Name,
+                Phone = c.Phone,
+                Email = c.Email,
+                OrderCount = c.Orders.Count,
+                TotalSpent = c.Orders
+                    .Sum(o => o.OrderDetails.Sum(od => od.Quantity * od.UnitPrice))
+            }).ToList();
+
+            CustomersDataGrid.ItemsSource = result;
         }
 
         private void CustomersDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -58,15 +74,18 @@ namespace CS665_PizzaRestaurantApp.Views
         private void LoadCustomerOrders(int customerId)
         {
             using var context = new ApplicationDbContext();
+
             var orders = context.OrderModels
                 .Where(o => o.CustomerID == customerId)
                 .Include(o => o.OrderDetails)
-                .AsEnumerable() // Switch to client evaluation
+                .AsEnumerable()
                 .Select(o => new
                 {
                     o.OrderID,
                     o.OrderDate,
-                    TotalAmount = o.TotalAmount
+                    TotalAmount = context.OrderDetailModels
+                    .Where(od => od.OrderID == o.OrderID)
+                    .Sum(o => o.Quantity * o.UnitPrice),
                 })
                 .ToList();
 
