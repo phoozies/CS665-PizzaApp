@@ -5,12 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CS665_PizzaRestaurantApp.Views"
         mc:Ignorable="d"
-        Title="Edit Order" Height="700" Width="1000">
+        Title="Edit Order" 
+        Height="700" 
+        Width="1000"
+        MinHeight="600"
+        MinWidth="800"
+        SizeToContent="Manual">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="0.5*" MinHeight="150"/>
+            <RowDefinition Height="0.5*" MinHeight="150"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -43,47 +48,60 @@
         </GroupBox>
 
         <!-- Current Order Items -->
-        <GroupBox Header="Current Order Items" Grid.Row="1" Margin="0,10,0,0">
-            <DataGrid x:Name="OrderItemsDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Image" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image Source="{Binding ImagePath}" Height="60" Stretch="Uniform"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="Auto"/>
-                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="Auto">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C}" Width="Auto"/>
-                    <DataGridTemplateColumn Header="Actions" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Content="+" Width="30" Margin="2" Click="IncreaseQuantity_Click" 
-                                            Tag="{Binding OrderDetailID}"/>
-                                    <Button Content="-" Width="30" Margin="2" Click="DecreaseQuantity_Click" 
-                                            Tag="{Binding OrderDetailID}"/>
-                                    <Button Content="Remove" Margin="2" Click="RemoveItem_Click" 
-                                            Tag="{Binding OrderDetailID}"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+        <GroupBox Header="Current Order Items" Grid.Row="1" Margin="0,10,0,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <DataGrid x:Name="OrderItemsDataGrid" 
+                              AutoGenerateColumns="False" 
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"
+                              MinHeight="150">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Image" Width="100" MinWidth="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Source="{Binding ImagePath}" Height="60" Stretch="Uniform"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Item" Binding="{Binding Name}" Width="*" MinWidth="150"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" Width="Auto" MinWidth="80"/>
+                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="Auto" MinWidth="60">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C}" Width="Auto" MinWidth="80"/>
+                            <DataGridTemplateColumn Header="Actions" Width="Auto" MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="+" Width="30" Margin="2" Click="IncreaseQuantity_Click" 
+                                                    Tag="{Binding OrderDetailID}"/>
+                                            <Button Content="-" Width="30" Margin="2" Click="DecreaseQuantity_Click" 
+                                                    Tag="{Binding OrderDetailID}"/>
+                                            <Button Content="Remove" Margin="2" Click="RemoveItem_Click" 
+                                                    Tag="{Binding OrderDetailID}" Width="60"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </ScrollViewer>
+            </Grid>
         </GroupBox>
 
         <!-- Add New Items -->
-        <GroupBox Header="Add Menu Items" Grid.Row="2" Margin="0,10,0,0">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <GroupBox Header="Add Menu Items" Grid.Row="2" Margin="0,5,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl x:Name="MenuItemsControl">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

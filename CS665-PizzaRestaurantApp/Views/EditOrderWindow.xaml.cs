@@ -6,8 +6,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
-// TODO: FIX EDIT ORDER FUNCTIONALITY
-
 namespace CS665_PizzaRestaurantApp.Views
 {
     public partial class EditOrderWindow : Window
@@ -15,6 +13,7 @@ namespace CS665_PizzaRestaurantApp.Views
         private int _orderId;
         private List<OrderItemDisplay> _currentOrderItems = new List<OrderItemDisplay>();
         private List<MenuItemModel> _menuItems = new List<MenuItemModel>();
+        private OrderModel _currentOrder;
 
         public EditOrderWindow(int orderId)
         {
@@ -27,22 +26,22 @@ namespace CS665_PizzaRestaurantApp.Views
         private void LoadOrderData()
         {
             using var context = new ApplicationDbContext();
-            var order = context.OrderModels
+            _currentOrder = context.OrderModels
                 .Include(o => o.Customer)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.MenuItem)
                 .FirstOrDefault(o => o.OrderID == _orderId);
 
-            if (order != null)
+            if (_currentOrder != null)
             {
                 // Display order info
-                CustomerNameText.Text = order.Customer.Name;
-                OrderDateText.Text = order.OrderDate.ToString("MM/dd/yyyy hh:mm tt");
-                OrderIdText.Text = order.OrderID.ToString();
-                OrderTotalText.Text = order.TotalAmount.ToString("C");
+                CustomerNameText.Text = _currentOrder.Customer.Name;
+                OrderDateText.Text = _currentOrder.OrderDate.ToString("MM/dd/yyyy hh:mm tt");
+                OrderIdText.Text = _currentOrder.OrderID.ToString();
+                OrderTotalText.Text = _currentOrder.OrderDetails.Sum(od => od.Quantity * od.UnitPrice).ToString("C");
 
                 // Load order items
-                _currentOrderItems = order.OrderDetails.Select(od => new OrderItemDisplay
+                _currentOrderItems = _currentOrder.OrderDetails.Select(od => new OrderItemDisplay
                 {
                     OrderDetailID = od.OrderDetailID,
                     ItemID = od.ItemID,
@@ -167,7 +166,7 @@ namespace CS665_PizzaRestaurantApp.Views
 
             try
             {
-                // Get the existing order
+                // Get the existing order with details
                 var order = context.OrderModels
                     .Include(o => o.OrderDetails)
                     .FirstOrDefault(o => o.OrderID == _orderId);
@@ -175,24 +174,23 @@ namespace CS665_PizzaRestaurantApp.Views
                 if (order != null)
                 {
                     // Remove any deleted items
-                    var existingDetails = order.OrderDetails.ToList();
-                    foreach (var existingDetail in existingDetails)
-                    {
-                        if (!_currentOrderItems.Any(i => i.OrderDetailID == existingDetail.OrderDetailID))
-                        {
-                            context.OrderDetailModels.Remove(existingDetail);
-                        }
-                    }
+                    var detailsToRemove = order.OrderDetails
+                        .Where(od => !_currentOrderItems.Any(i => i.OrderDetailID == od.OrderDetailID))
+                        .ToList();
+
+                    context.OrderDetailModels.RemoveRange(detailsToRemove);
 
                     // Update or add items
                     foreach (var item in _currentOrderItems)
                     {
-                        var existingDetail = order.OrderDetails.FirstOrDefault(od => od.OrderDetailID == item.OrderDetailID);
+                        var existingDetail = order.OrderDetails
+                            .FirstOrDefault(od => od.OrderDetailID == item.OrderDetailID);
 
                         if (existingDetail != null)
                         {
                             // Update existing item
                             existingDetail.Quantity = item.Quantity;
+                            existingDetail.UnitPrice = item.Price;
                         }
                         else
                         {
@@ -201,7 +199,8 @@ namespace CS665_PizzaRestaurantApp.Views
                             {
                                 ItemID = item.ItemID,
                                 Quantity = item.Quantity,
-                                UnitPrice = item.Price
+                                UnitPrice = item.Price,
+                                OrderID = order.OrderID
                             });
                         }
                     }
