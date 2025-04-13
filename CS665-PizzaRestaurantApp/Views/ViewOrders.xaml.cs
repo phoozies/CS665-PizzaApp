@@ -60,7 +60,6 @@ namespace CS665_PizzaRestaurantApp.Views
             var orders = context.OrderModels
                 .Where(o => o.CustomerID == customerId)
                 .Include(o => o.OrderDetails)
-                .AsEnumerable()
                 .Select(o => new
                 {
                     o.OrderID,
@@ -97,7 +96,6 @@ namespace CS665_PizzaRestaurantApp.Views
                     Price = od.UnitPrice,
                     Quantity = od.Quantity,
                     ImagePath = od.MenuItem.ImagePath,
-                    LineTotal = od.Quantity * od.UnitPrice
                 })
                 .ToList();
 

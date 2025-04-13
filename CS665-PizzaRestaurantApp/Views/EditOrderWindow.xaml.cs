@@ -25,42 +25,63 @@ namespace CS665_PizzaRestaurantApp.Views
 
         private void LoadOrderData()
         {
-            using var context = new ApplicationDbContext();
-            _currentOrder = context.OrderModels
-                .Include(o => o.Customer)
-                .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.MenuItem)
-                .FirstOrDefault(o => o.OrderID == _orderId);
-
-            if (_currentOrder != null)
+            try
             {
+                using var context = new ApplicationDbContext();
+                _currentOrder = context.OrderModels
+                    .Include(o => o.Customer)
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.MenuItem)
+                    .FirstOrDefault(o => o.OrderID == _orderId);
+
+                if (_currentOrder == null)
+                {
+                    MessageBox.Show("Order not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Close();
+                    return;
+                }
+
                 // Display order info
-                CustomerNameText.Text = _currentOrder.Customer.Name;
+                CustomerNameText.Text = _currentOrder.Customer?.Name ?? "Unknown";
                 OrderDateText.Text = _currentOrder.OrderDate.ToString("MM/dd/yyyy hh:mm tt");
                 OrderIdText.Text = _currentOrder.OrderID.ToString();
-                OrderTotalText.Text = _currentOrder.OrderDetails.Sum(od => od.Quantity * od.UnitPrice).ToString("C");
 
-                // Load order items
-                _currentOrderItems = _currentOrder.OrderDetails.Select(od => new OrderItemDisplay
-                {
-                    OrderDetailID = od.OrderDetailID,
-                    ItemID = od.ItemID,
-                    Name = od.MenuItem.Name,
-                    Price = od.UnitPrice,
-                    Quantity = od.Quantity,
-                    ImagePath = od.MenuItem.ImagePath,
-                    LineTotal = od.Quantity * od.UnitPrice
-                }).ToList();
+                // Load existing order items using OrderID
+                _currentOrderItems = _currentOrder.OrderDetails?
+                    .Where(od => od.OrderID == _currentOrder.OrderID) // Filter by correct OrderID
+                    .Select(od => new OrderItemDisplay
+                    {
+                        OrderDetailID = od.OrderDetailID,
+                        ItemID = od.ItemID,
+                        Name = od.MenuItem?.Name ?? "Unknown",
+                        Price = od.UnitPrice,
+                        Quantity = od.Quantity,
+                        ImagePath = od.MenuItem?.ImagePath,
+                    })
+                    .ToList() ?? new List<OrderItemDisplay>();
 
                 OrderItemsDataGrid.ItemsSource = _currentOrderItems;
+                UpdateOrderTotal();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading order: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
             }
         }
 
         private void LoadMenuItems()
         {
-            using var context = new ApplicationDbContext();
-            _menuItems = context.MenuItemModels.ToList();
-            MenuItemsControl.ItemsSource = _menuItems;
+            try
+            {
+                using var context = new ApplicationDbContext();
+                _menuItems = context.MenuItemModels.ToList();
+                MenuItemsControl.ItemsSource = _menuItems;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading menu items: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void AddItemToOrder_Click(object sender, RoutedEventArgs e)
@@ -68,31 +89,32 @@ namespace CS665_PizzaRestaurantApp.Views
             if (sender is Button button && button.Tag is int itemId)
             {
                 var menuItem = _menuItems.FirstOrDefault(m => m.ItemID == itemId);
-                if (menuItem != null)
+                if (menuItem == null) return;
+
+                // Check if item already exists in order
+                var existingItem = _currentOrderItems.FirstOrDefault(i => i.ItemID == itemId);
+
+                if (existingItem != null)
                 {
-                    var existingItem = _currentOrderItems.FirstOrDefault(i => i.ItemID == itemId);
-
-                    if (existingItem != null)
-                    {
-                        existingItem.Quantity++;
-                        existingItem.LineTotal = existingItem.Quantity * existingItem.Price;
-                    }
-                    else
-                    {
-                        _currentOrderItems.Add(new OrderItemDisplay
-                        {
-                            ItemID = menuItem.ItemID,
-                            Name = menuItem.Name,
-                            Price = menuItem.Price,
-                            Quantity = 1,
-                            ImagePath = menuItem.ImagePath,
-                            LineTotal = menuItem.Price
-                        });
-                    }
-
-                    RefreshOrderItems();
-                    UpdateOrderTotal();
+                    // Increase quantity of existing item
+                    existingItem.Quantity++;
                 }
+                else
+                {
+                    // Add new item to order
+                    _currentOrderItems.Add(new OrderItemDisplay
+                    {
+                        OrderDetailID = 0, // 0 indicates new item (not saved yet)
+                        ItemID = menuItem.ItemID,
+                        Name = menuItem.Name,
+                        Price = menuItem.Price,
+                        Quantity = 1,
+                        ImagePath = menuItem.ImagePath,
+                    });
+                }
+
+                RefreshOrderItems();
+                UpdateOrderTotal();
             }
         }
 
@@ -104,7 +126,6 @@ namespace CS665_PizzaRestaurantApp.Views
                 if (item != null)
                 {
                     item.Quantity++;
-                    item.LineTotal = item.Quantity * item.Price;
                     RefreshOrderItems();
                     UpdateOrderTotal();
                 }
@@ -121,7 +142,6 @@ namespace CS665_PizzaRestaurantApp.Views
                     if (item.Quantity > 1)
                     {
                         item.Quantity--;
-                        item.LineTotal = item.Quantity * item.Price;
                     }
                     else
                     {
@@ -158,83 +178,87 @@ namespace CS665_PizzaRestaurantApp.Views
             decimal total = _currentOrderItems.Sum(i => i.LineTotal);
             OrderTotalText.Text = total.ToString("C");
         }
-
         private void SaveChanges_Click(object sender, RoutedEventArgs e)
         {
-            using var context = new ApplicationDbContext();
-            using var transaction = context.Database.BeginTransaction();
-
             try
             {
-                // Get the existing order with details
+                using var context = new ApplicationDbContext();
+                using var transaction = context.Database.BeginTransaction();
+
                 var order = context.OrderModels
                     .Include(o => o.OrderDetails)
                     .FirstOrDefault(o => o.OrderID == _orderId);
 
-                if (order != null)
+                if (order == null)
                 {
-                    // Remove any deleted items
-                    var detailsToRemove = order.OrderDetails
-                        .Where(od => !_currentOrderItems.Any(i => i.OrderDetailID == od.OrderDetailID))
-                        .ToList();
+                    MessageBox.Show("Order not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-                    context.OrderDetailModels.RemoveRange(detailsToRemove);
+                // Process removed items
+                var existingDetails = order.OrderDetails.ToList();
+                foreach (var existingDetail in existingDetails)
+                {
+                    if (!_currentOrderItems.Any(i => i.OrderDetailID == existingDetail.OrderDetailID))
+                    {
+                        context.OrderDetailModels.Remove(existingDetail);
+                    }
+                }
 
-                    // Update or add items
-                    foreach (var item in _currentOrderItems)
+                // Process updated or new items
+                foreach (var item in _currentOrderItems)
+                {
+                    if (item.OrderDetailID > 0) // Existing item
                     {
                         var existingDetail = order.OrderDetails
-                            .FirstOrDefault(od => od.OrderDetailID == item.OrderDetailID);
+                            .FirstOrDefault(od => od.OrderDetailID == item.OrderDetailID && od.OrderID == _orderId);
 
                         if (existingDetail != null)
                         {
-                            // Update existing item
                             existingDetail.Quantity = item.Quantity;
                             existingDetail.UnitPrice = item.Price;
                         }
-                        else
-                        {
-                            // Add new item
-                            order.OrderDetails.Add(new OrderDetailModel
-                            {
-                                ItemID = item.ItemID,
-                                Quantity = item.Quantity,
-                                UnitPrice = item.Price,
-                                OrderID = order.OrderID
-                            });
-                        }
                     }
-
-                    context.SaveChanges();
-                    transaction.Commit();
-
-                    MessageBox.Show("Order updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    this.DialogResult = true;
-                    this.Close();
+                    else // New item
+                    {
+                        order.OrderDetails.Add(new OrderDetailModel
+                        {
+                            ItemID = item.ItemID,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.Price,
+                            OrderID = _orderId // Use the correct OrderID here
+                        });
+                    }
                 }
+
+                context.SaveChanges();
+                transaction.Commit();
+
+                MessageBox.Show("Order updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogResult = true;
+                Close();
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
-                MessageBox.Show($"Error saving changes: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error saving order: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false;
-            this.Close();
+            DialogResult = false;
+            Close();
         }
     }
 
     public class OrderItemDisplay
     {
-        public int OrderDetailID { get; set; }
+        public int OrderDetailID { get; set; } // 0 for new items, >0 for existing
         public int ItemID { get; set; }
         public string Name { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public string ImagePath { get; set; }
-        public decimal LineTotal { get; set; }
+        public decimal LineTotal => Quantity * Price;
     }
 }
